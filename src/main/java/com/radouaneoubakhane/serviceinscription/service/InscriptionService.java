@@ -122,8 +122,6 @@ public class InscriptionService {
         Inscription inscription = inscriptionRepository.findById(inscriptionId)
                 .orElseThrow(() -> new InscriptionNotFoundException("Inscription not found"));
 
-        inscription.setAccepted(true);
-        inscription.setRefused(false);
         if (!inscription.isCanceled() && !inscription.isRefused() && !inscription.isAccepted()) {
             etudientClient.SaveStudent(mapInscriptionToEtudientRequest(inscription));
             inscription.setAccepted(true);
