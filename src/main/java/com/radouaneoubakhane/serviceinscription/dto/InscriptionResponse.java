@@ -2,14 +2,20 @@ package com.radouaneoubakhane.serviceinscription.dto;
 
 
 import com.radouaneoubakhane.serviceinscription.model.enums.*;
+import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -25,7 +31,7 @@ public class InscriptionResponse {
     private Gender genre;
     private String email;
 
-    private LocalDate dateNaissance;
+    private Date dateNaissance;
     private String lieuNaissance;
     private String adresse;
     private String telephone;
@@ -62,6 +68,9 @@ public class InscriptionResponse {
     private String etablissementLicence;
     private String villeLicence;
     private String paysLicence;
+
+    // Diplomat
+    private Diplomat diplomat;
 
     //    La FILIERE
     private Long filiereId;

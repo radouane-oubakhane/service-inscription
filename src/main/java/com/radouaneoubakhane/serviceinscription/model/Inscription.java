@@ -8,6 +8,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Table(name = "inscription_table")
@@ -50,7 +51,7 @@ public class Inscription {
 
     @Past(message = "La date de naissance doit etre dans le passe")
     @Column(name = "date_naissance")
-    private LocalDate dateNaissance;
+    private Date dateNaissance;
 
 
     @NotBlank(message = "Le lieu de naissance est obligatoire")
@@ -111,6 +112,7 @@ public class Inscription {
     private String paysBac;
 
     //    LES INFORMATIONS DU DIPLOME DEUST
+
     @EnumNamePattern(
             regexp = "MIP|BCG|GE|GM",
             message = "Le diplome deust doit etre valide"
@@ -203,6 +205,15 @@ public class Inscription {
     @NotNull(message = "La filiere est obligatoire")
     @Column(name = "filiere_id")
     private Long filiereId;
+
+    // Diplomat
+    @NotNull(message = "Le diplomant est obligatoire")
+    @EnumNamePattern(
+            regexp = "DEUST|LST|MST",
+            message = "Le diplomant doit etre valide"
+    )
+    @Enumerated(EnumType.STRING)
+    private Diplomat diplomat;
 
     //    L'ETAT DE L'INSCRIPTION
     @Column(name = "is_accepted")

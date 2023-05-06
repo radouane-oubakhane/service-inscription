@@ -2,10 +2,13 @@ package com.radouaneoubakhane.serviceinscription.service;
 
 
 import com.radouaneoubakhane.serviceinscription.dto.EtudientRequest;
+import com.radouaneoubakhane.serviceinscription.dto.FilierResponse;
 import com.radouaneoubakhane.serviceinscription.dto.InscriptionRequest;
 import com.radouaneoubakhane.serviceinscription.dto.InscriptionResponse;
+import com.radouaneoubakhane.serviceinscription.exception.FiliereNotFoundException;
 import com.radouaneoubakhane.serviceinscription.exception.InscriptionNotFoundException;
 import com.radouaneoubakhane.serviceinscription.model.Inscription;
+import com.radouaneoubakhane.serviceinscription.model.enums.Diplomat;
 import com.radouaneoubakhane.serviceinscription.openfeingClients.EtudientClient;
 import com.radouaneoubakhane.serviceinscription.openfeingClients.FiliereClient;
 import com.radouaneoubakhane.serviceinscription.repository.InscriptionRepository;
@@ -15,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,12 +51,11 @@ public class InscriptionService {
 
     public InscriptionResponse createInscription(InscriptionRequest inscriptionRequest) {
         objectsValidator.validate(inscriptionRequest);
-//        FilierResponse filier = filiereClient.getFilierById(inscriptionRequest.getFiliereId());
-//        if (filier == null) {
-//            throw new FiliereNotFoundException("Filiere not found");
-//        }
-
-
+        FilierResponse filier = filiereClient.getFilierById(inscriptionRequest.getFiliereId());
+        if (filier == null) {
+            throw new FiliereNotFoundException("Filiere not found");
+        }
+        
         Inscription inscription = mapInscriptionRequestToInscription(inscriptionRequest);
 
         Inscription savedInscription = inscriptionRepository.save(inscription);
@@ -68,10 +72,10 @@ public class InscriptionService {
         Inscription inscription = inscriptionRepository.findById(inscriptionId)
                 .orElseThrow(() -> new InscriptionNotFoundException("Inscription not found"));
 
-//        FilierResponse filier = filiereClient.getFilierById(inscriptionRequest.getFiliereId());
-//        if (filier == null) {
-//            throw new FiliereNotFoundException("Filiere not found");
-//        }
+        FilierResponse filier = filiereClient.getFilierById(inscriptionRequest.getFiliereId());
+        if (filier == null) {
+            throw new FiliereNotFoundException("Filiere not found");
+        }
 
         inscription.setCin(inscriptionRequest.getCin());
         inscription.setCne(inscriptionRequest.getCne());
@@ -98,6 +102,7 @@ public class InscriptionService {
         inscription.setPaysDiplome(inscriptionRequest.getPaysDiplome());
         inscription.setLicence(inscriptionRequest.getLicence());
         inscription.setMoyenneLicence(inscriptionRequest.getMoyenneLicence());
+        inscription.setDiplomat(inscriptionRequest.getDiplomat());  
         inscription.setFiliereId(inscriptionRequest.getFiliereId());
 
         Inscription savedInscription = inscriptionRepository.save(inscription);
@@ -119,13 +124,30 @@ public class InscriptionService {
 
         inscription.setAccepted(true);
         inscription.setRefused(false);
-        if (!inscription.isCanceled()) {
-            etudientClient.addEtudient(mapInscriptionToEtudientRequest(inscription));
+        if (!inscription.isCanceled() && !inscription.isRefused() && !inscription.isAccepted()) {
+            etudientClient.SaveStudent(mapInscriptionToEtudientRequest(inscription));
+            inscription.setAccepted(true);
+            inscription.setRefused(false);
+            inscriptionRepository.save(inscription);
         }
     }
 
     private EtudientRequest mapInscriptionToEtudientRequest(Inscription inscription) {
-        return new EtudientRequest();
+
+        return EtudientRequest.builder()
+                .cin(inscription.getCin())
+                .apogee(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE)
+                .nom(inscription.getNom())
+                .prenom(inscription.getPrenom())
+                .cne(inscription.getCne())
+                .email(inscription.getEmail())
+                .phone(inscription.getTelephone())
+                .dateNaissance(inscription.getDateNaissance())
+                .lieuNaissance(inscription.getLieuNaissance())
+                .adresse(inscription.getAdresse())
+                .genre(inscription.getGenre())
+                .idFiliere(inscription.getFiliereId())
+                .build();
     }
 
     public InscriptionResponse rejectInscription(Long inscriptionId) {
@@ -172,6 +194,77 @@ public class InscriptionService {
                 .toList();
     }
 
+
+    public void acceptInscriptionDEUST(Integer number) {
+        List<Inscription> inscriptions = inscriptionRepository
+                .findAllByDiplomat(Diplomat.DEUST).stream()
+                .filter(inscription -> !inscription.isCanceled())
+                .toList();;
+
+
+        List<EtudientRequest> etudientRequests = inscriptions.stream()
+                .sorted(Comparator.comparing(Inscription::getMoyenneDiplome).reversed())
+                .limit(number)
+                .filter(inscription -> !inscription.isCanceled() && !inscription.isRefused() && !inscription.isAccepted())
+                .map(inscription -> {
+                    EtudientRequest etudientRequest = mapInscriptionToEtudientRequest(inscription);
+                    inscription.setAccepted(true);
+                    inscription.setRefused(false);
+                    inscriptionRepository.save(inscription);
+                    return etudientRequest;
+                })
+                   .toList();
+
+        etudientClient.saveStudents(etudientRequests);
+    }
+
+    public void acceptInscriptionLST(Integer number) {
+        List<Inscription> inscriptions = inscriptionRepository
+                .findAllByDiplomat(Diplomat.LST).stream()
+                .filter(inscription -> !inscription.isCanceled())
+                .toList();;
+
+        List<EtudientRequest> etudientRequests = inscriptions.stream()
+                .sorted(Comparator.comparing(Inscription::getMoyenneDiplome).reversed())
+                .limit(number)
+                .filter(inscription -> !inscription.isCanceled() && !inscription.isRefused() && !inscription.isAccepted())
+                .map(inscription -> {
+                    EtudientRequest etudientRequest = mapInscriptionToEtudientRequest(inscription);
+                    inscription.setAccepted(true);
+                    inscription.setRefused(false);
+                    inscriptionRepository.save(inscription);
+                    return etudientRequest;
+                })
+                .toList();
+
+        etudientClient.saveStudents(etudientRequests);
+    }
+
+    public void acceptInscriptionMST(Integer number) {
+        List<Inscription> inscriptions = inscriptionRepository
+                .findAllByDiplomat(Diplomat.MST).stream()
+                .filter(inscription -> !inscription.isCanceled())
+                .toList();
+
+        List<EtudientRequest> etudientRequests = inscriptions.stream()
+                .sorted(Comparator.comparing(Inscription::getMoyenneDiplome).reversed())
+                .limit(number)
+                .filter(inscription -> !inscription.isCanceled() && !inscription.isRefused() && !inscription.isAccepted())
+                .map(inscription -> {
+                    EtudientRequest etudientRequest = mapInscriptionToEtudientRequest(inscription);
+                    inscription.setAccepted(true);
+                    inscription.setRefused(false);
+                    inscriptionRepository.save(inscription);
+                    return etudientRequest;
+                })
+                .toList();
+
+        etudientClient.saveStudents(etudientRequests);
+    }
+
+
+
+
     private Inscription mapInscriptionRequestToInscription(InscriptionRequest inscriptionRequest) {
         return Inscription.builder()
                 .cin(inscriptionRequest.getCin())
@@ -207,6 +300,7 @@ public class InscriptionService {
                 .villeLicence(inscriptionRequest.getVilleLicence())
                 .villeLicence(inscriptionRequest.getPaysLicence())
                 .paysLicence(inscriptionRequest.getPaysLicence())
+                .diplomat(inscriptionRequest.getDiplomat())
                 .build();
     }
 
@@ -247,6 +341,7 @@ return InscriptionResponse.builder()
                 .villeLicence(inscription.getVilleLicence())
                 .villeLicence(inscription.getPaysLicence())
                 .paysLicence(inscription.getPaysLicence())
+                .diplomat(inscription.getDiplomat())
                 .build();
     }
 

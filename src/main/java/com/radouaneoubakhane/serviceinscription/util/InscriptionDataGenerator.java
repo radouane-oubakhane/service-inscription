@@ -4,15 +4,16 @@ import com.radouaneoubakhane.serviceinscription.model.Inscription;
 import com.radouaneoubakhane.serviceinscription.model.enums.*;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 public class InscriptionDataGenerator {
     public static Inscription generateInscription() {
 
         return Inscription.builder()
-                        .nom("Oubakhane")
+                        .nom("Radouane")
                         .prenom("Radouane")
                         .genre(Gender.MALE)
-                        .dateNaissance(LocalDate.of(1995, 8, 12))
+                        .dateNaissance(Date.from(LocalDate.of(1995, 8, 10).atStartOfDay().toInstant(java.time.ZoneOffset.UTC)))
                         .lieuNaissance("Casablanca")
                         .adresse("Casablanca")
                         .telephone("0600000000")
@@ -43,6 +44,7 @@ public class InscriptionDataGenerator {
                         .isAccepted(false)
                         .isRefused(false)
                         .isCanceled(false)
+                        .diplomat(Diplomat.LST)
                         .filiereId(1L)
                         .build();
     }

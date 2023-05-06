@@ -74,6 +74,28 @@ public class InscriptionController {
         inscriptionService.acceptInscription(inscriptionId);
     }
 
+
+    // select the first 10 inscriptions
+    @PostMapping("/deust/accept/{number}")
+    @ResponseStatus(HttpStatus.OK)
+    public void acceptInscriptionDEUST(@PathVariable Integer number) {
+        inscriptionService.acceptInscriptionDEUST(number);
+    }
+
+    @PostMapping("/lst/accept/{number}")
+    @ResponseStatus(HttpStatus.OK)
+    public void acceptInscriptionLST(@PathVariable Integer number) {
+        inscriptionService.acceptInscriptionLST(number);
+    }
+
+    @PostMapping("/mst/accept/{number}")
+    @ResponseStatus(HttpStatus.OK)
+    public void acceptInscriptionMST(@PathVariable Integer number) {
+        inscriptionService.acceptInscriptionMST(number);
+    }
+
+
+
     @PostMapping("/{inscriptionId}/reject")
     @ResponseStatus(HttpStatus.OK)
     public InscriptionResponse rejectInscription(@PathVariable Long inscriptionId) {
