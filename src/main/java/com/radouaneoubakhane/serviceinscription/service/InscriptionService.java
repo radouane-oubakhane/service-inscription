@@ -6,6 +6,7 @@ import com.radouaneoubakhane.serviceinscription.dto.FilierResponse;
 import com.radouaneoubakhane.serviceinscription.dto.InscriptionRequest;
 import com.radouaneoubakhane.serviceinscription.dto.InscriptionResponse;
 import com.radouaneoubakhane.serviceinscription.exception.FiliereNotFoundException;
+import com.radouaneoubakhane.serviceinscription.exception.InscriptionAlreadyAcceptedOrRefusedOrCanceledException;
 import com.radouaneoubakhane.serviceinscription.exception.InscriptionNotFoundException;
 import com.radouaneoubakhane.serviceinscription.model.Inscription;
 import com.radouaneoubakhane.serviceinscription.model.enums.Diplomat;
@@ -127,6 +128,9 @@ public class InscriptionService {
             inscription.setAccepted(true);
             inscription.setRefused(false);
             inscriptionRepository.save(inscription);
+        }
+        else {
+            throw new InscriptionAlreadyAcceptedOrRefusedOrCanceledException("Inscription already accepted or refused or canceled");
         }
     }
 
